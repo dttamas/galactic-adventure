@@ -1,12 +1,17 @@
-const cds = require('@sap/cds');
+import cds from '@sap/cds';
+import type { Department, Mission, Planet, Position, Rank, Spacefarer } from '#cds-models/db';
 
 describe('seed data (db/data/*.csv)', () => {
-  // Vitest 1.x runs beforeAll hooks in parallel, so our hook must wait for
-  // cds.test's server (and in-memory DB deploy) before querying.
   const test = cds.test(__dirname + '/..');
 
-  let planets, ranks, departments, positions, spacefarers, missions;
+  let planets: Planet[],
+    ranks: Rank[],
+    departments: Department[],
+    positions: Position[],
+    spacefarers: Spacefarer[],
+    missions: Mission[];
   beforeAll(async () => {
+    // Vitest 1.x runs beforeAll hooks in parallel
     await test;
     planets = await SELECT.from('db.Planet');
     ranks = await SELECT.from('db.Rank');
@@ -37,7 +42,7 @@ describe('seed data (db/data/*.csv)', () => {
   });
 
   it('has 3 spacefarers from Planet X and 3 from Planet Y', () => {
-    const from = (code) => spacefarers.filter((s) => s.originPlanet_code === code);
+    const from = (code: string) => spacefarers.filter((s) => s.originPlanet_code === code);
     expect(from('X')).toHaveLength(3);
     expect(from('Y')).toHaveLength(3);
   });
@@ -58,7 +63,7 @@ describe('seed data (db/data/*.csv)', () => {
   it('has no dangling mission foreign keys', () => {
     const spacefarerIDs = new Set(spacefarers.map((s) => s.ID));
     for (const m of missions) {
-      expect(spacefarerIDs, m.title).toContain(m.spacefarer_ID);
+      expect(spacefarerIDs, m.title ?? undefined).toContain(m.spacefarer_ID);
     }
   });
 
@@ -79,11 +84,11 @@ describe('seed data (db/data/*.csv)', () => {
   it('leaves Orion Blackhole without missions', () => {
     const orion = spacefarers.find((s) => s.name === 'Orion Blackhole');
     expect(orion).toBeDefined();
-    expect(missions.filter((m) => m.spacefarer_ID === orion.ID)).toHaveLength(0);
+    expect(missions.filter((m) => m.spacefarer_ID === orion?.ID)).toHaveLength(0);
   });
 
   it('orders ranks by seniority level 1..5', async () => {
-    const ordered = await SELECT.from('db.Rank').columns('code', 'level').orderBy('level');
+    const ordered: Rank[] = await SELECT.from('db.Rank').columns('code', 'level').orderBy('level');
     expect(ordered.map((r) => r.level)).toEqual([1, 2, 3, 4, 5]);
     expect(ordered.map((r) => r.code)).toEqual([
       'Cadet',

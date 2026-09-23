@@ -1,11 +1,10 @@
-const cds = require('@sap/cds');
-const path = require('path');
+import cds from '@sap/cds';
+import path from 'path';
 
-// Mocked users with known passwords must never reach production. cds.env.for()
-// builds a fresh, detached config from NODE_ENV, so the global cds.env is untouched.
 describe('auth configuration per profile', () => {
   const root = path.join(__dirname, '..');
-  const envFor = (nodeEnv) => {
+  // cds.env.for() builds a detached config, so the global cds.env is untouched
+  const envFor = (nodeEnv: string) => {
     const saved = process.env.NODE_ENV;
     process.env.NODE_ENV = nodeEnv;
     try {

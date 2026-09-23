@@ -16,7 +16,6 @@ service GalacticService @(path: '/galactic') {
   @odata.draft.enabled
   entity Spacefarers as projection on db.Spacefarer;
 
-  // A mission is visible only when its spacefarer is (same planet rule).
   @restrict: [
     {
       grant: '*',

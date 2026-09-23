@@ -20,7 +20,7 @@ entity Planet : CodeList {
 
 entity Rank : CodeList {
   key code  : String(20);
-      level : Integer; // seniority: 1 = Cadet ... 5 = Admiral
+      level : Integer;
 }
 
 entity Department : cuid, managed {
@@ -39,8 +39,7 @@ entity Spacefarer : cuid, managed {
   originPlanet        : Association to Planet;
   spacesuitColor      : String(30);
   stardustCollected   : Integer default 0;
-  // Calculated on read (not stored). Thresholds: <500 Low, 500-1999 Growing,
-  // >=2000 Stellar. Keep both case expressions in sync.
+  // keep in sync with stardustCriticality
   stardustStatus      : String(10) = case
                                        when stardustCollected >= 2000
                                             then 'Stellar'
@@ -48,7 +47,6 @@ entity Spacefarer : cuid, managed {
                                             then 'Growing'
                                        else 'Low'
                                      end;
-  // Fiori criticality: 1 = negative (red), 2 = critical (yellow), 3 = positive (green)
   stardustCriticality : Integer    = case
                                        when stardustCollected >= 2000
                                             then 3

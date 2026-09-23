@@ -1,17 +1,15 @@
-const cds = require('@sap/cds');
+import cds from '@sap/cds';
+import type { Spacefarer } from '#cds-models/GalacticService';
 
-// Read-only tests with exact row counts. Anything that writes goes into
-// service-write.test.js so these counts cannot drift.
 describe('GalacticService read isolation', () => {
   const test = cds.test(__dirname + '/..');
 
-  // Basic auth as a mocked user (password = user name); never throw on 4xx.
-  const as = (user) => ({
+  const as = (user?: string) => ({
     auth: user && { username: user, password: user },
     validateStatus: () => true,
   });
-  const X1 = '10000000-0000-0000-0000-000000000001'; // Nova Starweaver, Planet X
-  const Y1 = '20000000-0000-0000-0000-000000000001'; // Vega Cometrider, Planet Y
+  const NOVA = '10000000-0000-0000-0000-000000000001';
+  const VEGA = '20000000-0000-0000-0000-000000000001';
 
   beforeAll(async () => {
     await test;
@@ -63,7 +61,7 @@ describe('GalacticService read isolation', () => {
 
     it('alice cannot read a Planet Y spacefarer by key', async () => {
       const res = await test.get(
-        `/galactic/Spacefarers(ID=${Y1},IsActiveEntity=true)`,
+        `/galactic/Spacefarers(ID=${VEGA},IsActiveEntity=true)`,
         as('alice'),
       );
       expect(res.status).toBe(404);
@@ -79,7 +77,7 @@ describe('GalacticService read isolation', () => {
 
     it('alice can read her own Planet X spacefarer by key', async () => {
       const res = await test.get(
-        `/galactic/Spacefarers(ID=${X1},IsActiveEntity=true)`,
+        `/galactic/Spacefarers(ID=${NOVA},IsActiveEntity=true)`,
         as('alice'),
       );
       expect(res.status).toBe(200);
@@ -128,7 +126,7 @@ describe('GalacticService read isolation', () => {
         '/galactic/Spacefarers?$select=name,stardustCollected,stardustStatus,stardustCriticality',
         as('admin'),
       );
-      const byName = Object.fromEntries(data.value.map((s) => [s.name, s]));
+      const byName = Object.fromEntries(data.value.map((s: Spacefarer) => [s.name, s]));
       expect(byName['Orion Blackhole']).toMatchObject({
         stardustStatus: 'Low',
         stardustCriticality: 1,
@@ -149,7 +147,10 @@ describe('GalacticService read isolation', () => {
         as('admin'),
       );
       expect(status).toBe(200);
-      expect(data.value.map((s) => s.name).sort()).toEqual(['Lyra Nebula', 'Sirius Voidwalker']);
+      expect(data.value.map((s: Spacefarer) => s.name).sort()).toEqual([
+        'Lyra Nebula',
+        'Sirius Voidwalker',
+      ]);
     });
 
     it('combines the stardust $filter with planet isolation', async () => {
@@ -157,7 +158,7 @@ describe('GalacticService read isolation', () => {
         "/galactic/Spacefarers?$filter=stardustStatus eq 'Stellar'",
         as('alice'),
       );
-      expect(data.value.map((s) => s.name)).toEqual(['Lyra Nebula']);
+      expect(data.value.map((s: Spacefarer) => s.name)).toEqual(['Lyra Nebula']);
     });
 
     it('supports $orderby=stardustStatus', async () => {
@@ -166,13 +167,13 @@ describe('GalacticService read isolation', () => {
         as('admin'),
       );
       expect(status).toBe(200);
-      expect(data.value.map((s) => s.name)).toEqual([
-        'Nova Starweaver', // Growing
-        'Vega Cometrider', // Growing
-        'Andromeda Quasar', // Low
-        'Orion Blackhole', // Low
-        'Lyra Nebula', // Stellar
-        'Sirius Voidwalker', // Stellar
+      expect(data.value.map((s: Spacefarer) => s.name)).toEqual([
+        'Nova Starweaver',
+        'Vega Cometrider',
+        'Andromeda Quasar',
+        'Orion Blackhole',
+        'Lyra Nebula',
+        'Sirius Voidwalker',
       ]);
     });
   });

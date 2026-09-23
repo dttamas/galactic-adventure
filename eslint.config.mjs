@@ -1,30 +1,24 @@
 import js from '@eslint/js';
 import prettier from 'eslint-config-prettier';
+import tseslint from 'typescript-eslint';
 import cds from '@sap/cds/eslint.config.mjs';
 
 export default [
   ...cds.recommended,
   js.configs.recommended,
+  ...tseslint.configs.recommended,
   prettier,
   {
-    files: ['**/*.js'],
-    languageOptions: {
-      ecmaVersion: 2023,
-      sourceType: 'commonjs',
-      globals: {
-        process: 'readonly',
-        module: 'writable',
-        require: 'readonly',
-        __dirname: 'readonly',
-        console: 'readonly',
-      },
+    files: ['**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     },
-    rules: { 'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }] },
   },
   {
     ignores: [
       'node_modules/',
       'gen/',
+      '@cds-models/',
       'app/*/webapp/',
       '.claude/',
       'docs/',
