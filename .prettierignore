@@ -1,0 +1,9 @@
+node_modules/
+gen/
+app/*/webapp/
+package-lock.json
+.claude/
+docs/
+.superpowers/
+.vscode/
+pnpm-lock.yaml

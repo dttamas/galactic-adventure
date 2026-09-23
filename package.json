@@ -2,15 +2,43 @@
   "name": "galactic-adventure",
   "version": "1.0.0",
   "type": "commonjs",
+  "packageManager": "pnpm@10.30.0",
   "dependencies": {
     "@sap/cds": "^10"
   },
   "devDependencies": {
     "@cap-js/sqlite": "^3",
-    "@sap/cds-dk": "^10.1.2"
+    "@eslint/js": "^10.0.1",
+    "@sap/cds-dk": "^10.1.2",
+    "@sap/eslint-plugin-cds": "^4.2.5",
+    "eslint": "^10.11.0",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.5.1",
+    "prettier": "^3.9.9"
   },
   "scripts": {
-    "start": "cds-serve"
+    "start": "cds serve",
+    "watch": "cds watch",
+    "build": "cds build",
+    "test": "vitest run",
+    "lint": "pnpm run lint:cds && pnpm run lint:js",
+    "lint:cds": "cds lint",
+    "lint:js": "eslint .",
+    "format": "prettier --write .",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.cds": [
+      "cds lint"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
   },
   "private": true
 }
