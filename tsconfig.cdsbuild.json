@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "gen/srv",
+    "types": ["node"]
+  },
+  "include": ["srv/**/*.ts"]
+}

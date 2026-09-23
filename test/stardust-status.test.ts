@@ -1,8 +1,7 @@
-const cds = require('@sap/cds');
+import cds from '@sap/cds';
+import type { Spacefarer } from '#cds-models/db';
 
 describe('stardust collection status (calculated elements)', () => {
-  // Vitest 1.x runs beforeAll hooks in parallel, so our hook must wait for
-  // cds.test's server (and in-memory DB deploy) before querying.
   const test = cds.test(__dirname + '/..');
 
   const cases = [
@@ -15,8 +14,9 @@ describe('stardust collection status (calculated elements)', () => {
     { name: 'Nobody', stardust: null, status: 'Low', criticality: 1 },
   ];
 
-  let rows;
+  let rows: Spacefarer[];
   beforeAll(async () => {
+    // Vitest 1.x runs beforeAll hooks in parallel
     await test;
     await INSERT.into('db.Spacefarer').entries(
       cases.map((c) => ({ name: c.name, stardustCollected: c.stardust })),
@@ -34,8 +34,8 @@ describe('stardust collection status (calculated elements)', () => {
     ({ name, status, criticality }) => {
       const row = rows.find((r) => r.name === name);
       expect(row).toBeDefined();
-      expect(row.stardustStatus).toBe(status);
-      expect(row.stardustCriticality).toBe(criticality);
+      expect(row?.stardustStatus).toBe(status);
+      expect(row?.stardustCriticality).toBe(criticality);
     },
   );
 });

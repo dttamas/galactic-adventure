@@ -1,4 +1,4 @@
-const cds = require('@sap/cds');
+import cds from '@sap/cds';
 
 describe('smoke', () => {
   it('CDS module loads', () => {

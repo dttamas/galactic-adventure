@@ -1,27 +1,25 @@
-const cds = require('@sap/cds');
+import cds from '@sap/cds';
+import type { Spacefarer } from '#cds-models/GalacticService';
 
-// Write isolation and draft behaviour. Tests here create and change rows, so they
-// live apart from the exact-count read tests in service.test.js. They run in order
-// and share one in-memory database.
 describe('GalacticService write isolation and drafts', () => {
   const test = cds.test(__dirname + '/..');
 
-  const as = (user) => ({
+  const as = (user: string) => ({
     auth: { username: user, password: user },
     validateStatus: () => true,
   });
-  const draftOf = (ID) => `/galactic/Spacefarers(ID=${ID},IsActiveEntity=false)`;
-  const activeOf = (ID) => `/galactic/Spacefarers(ID=${ID},IsActiveEntity=true)`;
-  const activate = (ID, user) =>
+  const draftOf = (ID: string) => `/galactic/Spacefarers(ID=${ID},IsActiveEntity=false)`;
+  const activeOf = (ID: string) => `/galactic/Spacefarers(ID=${ID},IsActiveEntity=true)`;
+  const activate = (ID: string, user: string) =>
     test.post(`${draftOf(ID)}/GalacticService.draftActivate`, {}, as(user));
-  const edit = (ID, user) =>
+  const edit = (ID: string, user: string) =>
     test.post(`${activeOf(ID)}/GalacticService.draftEdit`, { PreserveChanges: true }, as(user));
-  const discard = (ID, user) => test.delete(draftOf(ID), as(user));
-  const planetInDb = async (ID) =>
+  const discard = (ID: string, user: string) => test.delete(draftOf(ID), as(user));
+  const planetInDb = async (ID: string) =>
     (await SELECT.one.from('db.Spacefarer', ID).columns('originPlanet_code'))?.originPlanet_code;
 
-  const NOVA = '10000000-0000-0000-0000-000000000001'; // Planet X, 1200 stardust (Growing)
-  const VEGA = '20000000-0000-0000-0000-000000000001'; // Planet Y
+  const NOVA = '10000000-0000-0000-0000-000000000001';
+  const VEGA = '20000000-0000-0000-0000-000000000001';
 
   beforeAll(async () => {
     await test;
@@ -82,7 +80,7 @@ describe('GalacticService write isolation and drafts', () => {
     });
 
     it('rejects activation of a draft that holds another planet', async () => {
-      // Bypass the service to plant Planet Y in alice's draft; activation must still fail.
+      // write past the service to plant Planet Y in the draft
       const { data } = await test.post('/galactic/Spacefarers', { name: 'Planted' }, as('alice'));
       await UPDATE('GalacticService.Spacefarers.drafts', data.ID).with({ originPlanet_code: 'Y' });
       const act = await activate(data.ID, 'alice');
@@ -158,7 +156,7 @@ describe('GalacticService write isolation and drafts', () => {
         as('alice'),
       );
       expect(filtered.status).toBe(200);
-      expect(filtered.data.value.map((s) => s.ID)).toEqual([NOVA]);
+      expect(filtered.data.value.map((s: Spacefarer) => s.ID)).toEqual([NOVA]);
 
       const ordered = await test.get(
         '/galactic/Spacefarers?$filter=IsActiveEntity eq false&$orderby=stardustStatus desc',

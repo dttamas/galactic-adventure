@@ -1,13 +1,13 @@
-const cds = require('@sap/cds');
+import cds from '@sap/cds';
 
 describe('schema', () => {
-  let model;
+  let definitions: NonNullable<cds.csn.CSN['definitions']>;
   beforeAll(async () => {
-    model = await cds.load(__dirname + '/../db/schema.cds');
+    definitions = (await cds.load(__dirname + '/../db/schema.cds')).definitions ?? {};
   });
 
   it('defines Spacefarer with cosmic fields', () => {
-    const s = model.definitions['db.Spacefarer'];
+    const s = definitions['db.Spacefarer'];
     expect(s).toBeDefined();
     expect(s.elements.name).toBeDefined();
     expect(s.elements.stardustCollected).toBeDefined();
@@ -19,13 +19,13 @@ describe('schema', () => {
   });
 
   it('defines Planet as a code list', () => {
-    const p = model.definitions['db.Planet'];
+    const p = definitions['db.Planet'];
     expect(p).toBeDefined();
     expect(p.elements.code).toBeDefined();
   });
 
   it('defines Mission with status enum', () => {
-    const m = model.definitions['db.Mission'];
+    const m = definitions['db.Mission'];
     expect(m).toBeDefined();
     expect(m.elements.status).toBeDefined();
   });
