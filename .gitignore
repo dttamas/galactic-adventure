@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# CAP build output
+gen/
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Env / secrets
+.env
+.env.*
+default-env.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Local Claude / docs (not shared)
+.claude/
+docs/
+.superpowers/
