@@ -19,7 +19,8 @@ entity Planet : CodeList {
 }
 
 entity Rank : CodeList {
-  key code : String(20);
+  key code  : String(20);
+      level : Integer; // seniority: 1 = Cadet ... 5 = Admiral
 }
 
 entity Department : cuid, managed {

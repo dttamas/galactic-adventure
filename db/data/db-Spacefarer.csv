@@ -1,0 +1,7 @@
+ID;name;email;originPlanet_code;spacesuitColor;stardustCollected;wormholeNavSkill;rank_code;department_ID;position_ID
+10000000-0000-0000-0000-000000000001;Nova Starweaver;nova.starweaver@example.com;X;Silver;1200;7;Commander;11111111-1111-1111-1111-111111111111;aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+10000000-0000-0000-0000-000000000002;Orion Blackhole;orion.blackhole@example.com;X;Charcoal;450;5;Ensign;22222222-2222-2222-2222-222222222222;bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+10000000-0000-0000-0000-000000000003;Lyra Nebula;lyra.nebula@example.com;X;Violet;3500;9;Captain;33333333-3333-3333-3333-333333333333;cccccccc-cccc-cccc-cccc-cccccccccccc
+20000000-0000-0000-0000-000000000001;Vega Cometrider;vega.cometrider@example.com;Y;Gold;800;6;Ensign;11111111-1111-1111-1111-111111111111;aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+20000000-0000-0000-0000-000000000002;Sirius Voidwalker;sirius.voidwalker@example.com;Y;Obsidian;2100;8;Commander;22222222-2222-2222-2222-222222222222;bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+20000000-0000-0000-0000-000000000003;Andromeda Quasar;andromeda.quasar@example.com;Y;Crimson;150;3;Cadet;33333333-3333-3333-3333-333333333333;cccccccc-cccc-cccc-cccc-cccccccccccc
