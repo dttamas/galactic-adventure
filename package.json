@@ -44,5 +44,46 @@
       "prettier --write"
     ]
   },
-  "private": true
+  "private": true,
+  "cds": {
+    "requires": {
+      "[development]": {
+        "auth": {
+          "kind": "mocked",
+          "users": {
+            "alice": {
+              "password": "alice",
+              "roles": [],
+              "attr": {
+                "planet": "X"
+              }
+            },
+            "bob": {
+              "password": "bob",
+              "roles": [],
+              "attr": {
+                "planet": "Y"
+              }
+            },
+            "admin": {
+              "password": "admin",
+              "roles": [
+                "admin"
+              ],
+              "attr": {
+                "planet": "X"
+              }
+            },
+            "carol": false,
+            "dave": false,
+            "erin": false,
+            "fred": false,
+            "me": false,
+            "yves": false,
+            "*": false
+          }
+        }
+      }
+    }
+  }
 }
