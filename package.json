@@ -7,6 +7,7 @@
     "@sap/cds": "^10"
   },
   "devDependencies": {
+    "@cap-js/cds-test": "^1.0.2",
     "@cap-js/sqlite": "^3",
     "@eslint/js": "^10.0.1",
     "@sap/cds-dk": "^10.1.2",
@@ -15,7 +16,8 @@
     "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
     "lint-staged": "^17.5.1",
-    "prettier": "^3.9.9"
+    "prettier": "^3.9.9",
+    "vitest": "^1.6.1"
   },
   "scripts": {
     "start": "cds serve",
