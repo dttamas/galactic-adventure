@@ -28,6 +28,8 @@
     "lint:cds": "cds lint",
     "lint:js": "eslint .",
     "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "pnpm run lint && pnpm run format:check && pnpm test",
     "prepare": "husky"
   },
   "lint-staged": {
