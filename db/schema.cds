@@ -34,8 +34,8 @@ entity Position : cuid, managed {
 }
 
 entity Spacefarer : cuid, managed {
-  name                : String(100) not null;
-  email               : String(200);
+  name                : String(100) not null @mandatory @mandatory.message: 'Name is required';
+  email               : String(200) @mandatory @mandatory.message: 'Email is required';
   originPlanet        : Association to Planet;
   spacesuitColor      : String(30);
   stardustCollected   : Integer default 0;

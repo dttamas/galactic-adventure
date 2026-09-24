@@ -1,6 +1,6 @@
 import cds from '@sap/cds';
 import type { Spacefarer } from '#cds-models/GalacticService';
-import { titleCase, validInt } from '../lib/rules';
+import { isSingleEmail, titleCase, validInt } from '../lib/rules';
 
 const LOG = cds.log('galactic');
 
@@ -10,11 +10,12 @@ export function prepareCandidate(req: cds.Request<Spacefarer>) {
     s.stardustCollected ??= 0;
     s.wormholeNavSkill ??= 1;
   }
+  // blank name and email never get here: @mandatory rejects them before handlers run
   if (typeof s.name === 'string') s.name = s.name.trim();
-  // not null alone would accept the trimmed ''
-  if ('name' in s && !s.name)
-    req.error({ status: 400, message: 'Name is required', target: 'name' });
   if (typeof s.spacesuitColor === 'string') s.spacesuitColor = titleCase(s.spacesuitColor);
+  if (typeof s.email === 'string') s.email = s.email.trim();
+  if (s.email && !isSingleEmail(s.email))
+    req.error({ status: 400, message: 'Email must be a single valid address', target: 'email' });
 
   if (!validInt(s.wormholeNavSkill, 1, 10))
     req.error({

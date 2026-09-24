@@ -17,7 +17,11 @@ describe('prepare spacefaring candidate (before CREATE/UPDATE)', () => {
   const inDb = (ID: string) => SELECT.one.from('db.Spacefarer', ID);
 
   const createDraft = async (data: object, user = 'alice') => {
-    const res = await test.post('/galactic/Spacefarers', { name: 'Cadet', ...data }, as(user));
+    const res = await test.post(
+      '/galactic/Spacefarers',
+      { name: 'Cadet', email: 'cadet@example.com', ...data },
+      as(user),
+    );
     expect(res.status).toBe(201);
     return res.data.ID as string;
   };
@@ -135,7 +139,7 @@ describe('prepare spacefaring candidate (before CREATE/UPDATE)', () => {
     const act = await activate(ID);
     expect(act.status).toBe(400);
     expect(errorsOf(act.data)).toEqual([
-      expect.objectContaining({ message: 'Name is required', target: 'name' }),
+      expect.objectContaining({ message: 'Name is required', target: 'in/name' }),
     ]);
     expect(await inDb(ID)).toBeUndefined();
     await discard(ID);
@@ -146,7 +150,9 @@ describe('prepare spacefaring candidate (before CREATE/UPDATE)', () => {
     await patchDraft(NOVA, { name: '  ' });
     const act = await activate(NOVA);
     expect(act.status).toBe(400);
-    expect(errorsOf(act.data)[0]).toMatchObject({ target: 'name' });
+    expect(errorsOf(act.data)).toEqual([
+      expect.objectContaining({ message: 'Name is required', target: 'in/name' }),
+    ]);
     expect(await inDb(NOVA)).toMatchObject({ name: 'Nova Starweaver' });
     await discard(NOVA);
   });
@@ -154,7 +160,125 @@ describe('prepare spacefaring candidate (before CREATE/UPDATE)', () => {
   it('accepts a partial update that does not touch the name', async () => {
     const res = await test.patch(activeOf(ORION), { wormholeNavSkill: 6 }, as('alice'));
     expect(res.status).toBe(200);
-    expect(await inDb(ORION)).toMatchObject({ name: 'Orion Blackhole', wormholeNavSkill: 6 });
+    expect(await inDb(ORION)).toMatchObject({
+      name: 'Orion Blackhole',
+      email: 'orion.blackhole@example.com',
+      wormholeNavSkill: 6,
+    });
+  });
+
+  it('rejects an email with several recipients with 400 on the email field', async () => {
+    const ID = await createDraft({
+      name: 'Spammy Cadet',
+      email: 'spammy@example.com, victim@example.com',
+    });
+    const act = await activate(ID);
+    expect(act.status).toBe(400);
+    expect(errorsOf(act.data)).toEqual([
+      expect.objectContaining({
+        message: 'Email must be a single valid address',
+        target: 'email',
+      }),
+    ]);
+    expect(await inDb(ID)).toBeUndefined();
+    await discard(ID);
+  });
+
+  it('accepts a single email and trims it', async () => {
+    const ID = await createDraft({ name: 'Mail Cadet', email: ' mail.cadet@example.com ' });
+    expect((await activate(ID)).status).toBe(201);
+    expect(await inDb(ID)).toMatchObject({ email: 'mail.cadet@example.com' });
+  });
+
+  // @mandatory targets draftActivate errors at the action's binding parameter ('in/')
+  const emailRequired = (target: string) => [
+    expect.objectContaining({ message: 'Email is required', target }),
+  ];
+
+  it('rejects a blank email on create with one error on the email field', async () => {
+    const ID = await createDraft({ name: 'Blank Mail Cadet', email: '   ' });
+    const act = await activate(ID);
+    expect(act.status).toBe(400);
+    expect(errorsOf(act.data)).toEqual(emailRequired('in/email'));
+    expect(await inDb(ID)).toBeUndefined();
+
+    const draft = await test.get(`${draftOf(ID)}?$select=DraftMessages`, as('alice'));
+    expect(draft.data.DraftMessages).toEqual([
+      expect.objectContaining({
+        message: 'Email is required',
+        target: `/Spacefarers(ID=${ID},IsActiveEntity=false)/email`,
+      }),
+    ]);
+    await discard(ID);
+  });
+
+  it('rejects a create without email', async () => {
+    const ID = await createDraft({ name: 'No Mail Cadet', email: undefined });
+    const act = await activate(ID);
+    expect(act.status).toBe(400);
+    expect(errorsOf(act.data)).toEqual(emailRequired('in/email'));
+    expect(await inDb(ID)).toBeUndefined();
+    await discard(ID);
+  });
+
+  it('saves a draft without email; only activation needs it', async () => {
+    const ID = await createDraft({ name: 'Undecided Cadet', email: undefined });
+    await patchDraft(ID, { stardustCollected: 3 });
+    await patchDraft(ID, { email: null });
+    expect((await activate(ID)).status).toBe(400);
+    await patchDraft(ID, { email: 'decided@example.com' });
+    expect((await activate(ID)).status).toBe(201);
+    expect(await inDb(ID)).toMatchObject({ email: 'decided@example.com', stardustCollected: 3 });
+  });
+
+  it('rejects blanking the email of an existing spacefarer', async () => {
+    expect((await edit(NOVA)).status).toBe(201);
+    await patchDraft(NOVA, { email: '  ' });
+    const act = await activate(NOVA);
+    expect(act.status).toBe(400);
+    expect(errorsOf(act.data)).toEqual(emailRequired('in/email'));
+    expect(await inDb(NOVA)).toMatchObject({ email: 'nova.starweaver@example.com' });
+    await discard(NOVA);
+  });
+
+  it('rejects clearing the email with a direct PATCH', async () => {
+    const res = await test.patch(activeOf(ORION), { email: null }, as('alice'));
+    expect(res.status).toBe(400);
+    expect(errorsOf(res.data)).toEqual(emailRequired('email'));
+    expect(await inDb(ORION)).toMatchObject({ email: 'orion.blackhole@example.com' });
+  });
+
+  it('reports a blank name and a blank email together on activation', async () => {
+    const ID = await createDraft({ name: '  ', email: '  ' });
+    const act = await activate(ID);
+    expect(act.status).toBe(400);
+    expect(errorsOf(act.data)).toHaveLength(2);
+    expect(errorsOf(act.data)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ message: 'Name is required', target: 'in/name' }),
+        expect.objectContaining({ message: 'Email is required', target: 'in/email' }),
+      ]),
+    );
+    expect(await inDb(ID)).toBeUndefined();
+    await discard(ID);
+  });
+
+  it('rejects blanking the name with a direct PATCH', async () => {
+    const res = await test.patch(activeOf(ORION), { name: '  ' }, as('alice'));
+    expect(res.status).toBe(400);
+    expect(errorsOf(res.data)).toEqual([
+      expect.objectContaining({ message: 'Name is required', target: 'name' }),
+    ]);
+    expect(await inDb(ORION)).toMatchObject({ name: 'Orion Blackhole' });
+  });
+
+  it('rejects an invalid email on a direct PATCH', async () => {
+    const res = await test.patch(activeOf(ORION), { email: 'not-an-email' }, as('alice'));
+    expect(res.status).toBe(400);
+    expect(errorsOf(res.data)).toEqual([
+      expect.objectContaining({ message: 'Email must be a single valid address', target: 'email' }),
+    ]);
+    expect(await inDb(ORION)).toMatchObject({ email: 'orion.blackhole@example.com' });
   });
 
   it('still enforces the planet guard', async () => {

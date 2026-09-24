@@ -29,7 +29,7 @@ describe('GalacticService write isolation and drafts', () => {
     it('creates a draft (IsActiveEntity=false), not an active row', async () => {
       const res = await test.post(
         '/galactic/Spacefarers',
-        { name: 'Draft Only', originPlanet_code: 'X' },
+        { name: 'Draft Only', email: 'draft.only@example.com', originPlanet_code: 'X' },
         as('alice'),
       );
       expect(res.status).toBe(201);
@@ -45,7 +45,11 @@ describe('GalacticService write isolation and drafts', () => {
 
   describe('create (draft create + activate, as Fiori does)', () => {
     it('derives the planet from the user when none is given', async () => {
-      const res = await test.post('/galactic/Spacefarers', { name: 'No Planet' }, as('alice'));
+      const res = await test.post(
+        '/galactic/Spacefarers',
+        { name: 'No Planet', email: 'no.planet@example.com' },
+        as('alice'),
+      );
       expect(res.status).toBe(201);
       expect(res.data.originPlanet_code).toBe('X');
       expect((await activate(res.data.ID, 'alice')).status).toBe(201);
@@ -72,7 +76,11 @@ describe('GalacticService write isolation and drafts', () => {
     });
 
     it('rejects patching a new draft to Planet Y, and activation keeps Planet X', async () => {
-      const { data } = await test.post('/galactic/Spacefarers', { name: 'Switcher' }, as('alice'));
+      const { data } = await test.post(
+        '/galactic/Spacefarers',
+        { name: 'Switcher', email: 'switcher@example.com' },
+        as('alice'),
+      );
       const patch = await test.patch(draftOf(data.ID), { originPlanet_code: 'Y' }, as('alice'));
       expect(patch.status).toBe(403);
       expect((await activate(data.ID, 'alice')).status).toBe(201);
@@ -81,7 +89,11 @@ describe('GalacticService write isolation and drafts', () => {
 
     it('rejects activation of a draft that holds another planet', async () => {
       // write past the service to plant Planet Y in the draft
-      const { data } = await test.post('/galactic/Spacefarers', { name: 'Planted' }, as('alice'));
+      const { data } = await test.post(
+        '/galactic/Spacefarers',
+        { name: 'Planted', email: 'planted@example.com' },
+        as('alice'),
+      );
       await UPDATE('GalacticService.Spacefarers.drafts', data.ID).with({ originPlanet_code: 'Y' });
       const act = await activate(data.ID, 'alice');
       expect(act.status).toBe(403);
@@ -100,7 +112,7 @@ describe('GalacticService write isolation and drafts', () => {
     it('lets admin create a spacefarer on any planet', async () => {
       const res = await test.post(
         '/galactic/Spacefarers',
-        { name: 'Admin Made', originPlanet_code: 'Y' },
+        { name: 'Admin Made', email: 'admin.made@example.com', originPlanet_code: 'Y' },
         as('admin'),
       );
       expect(res.status).toBe(201);
