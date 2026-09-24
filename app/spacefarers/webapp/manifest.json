@@ -3,7 +3,11 @@
   "sap.app": {
     "id": "galactic.spacefarers",
     "type": "application",
-    "i18n": "i18n/i18n.properties",
+    "i18n": {
+      "bundleUrl": "i18n/i18n.properties",
+      "supportedLocales": [""],
+      "fallbackLocale": ""
+    },
     "applicationVersion": {
       "version": "0.0.1"
     },
@@ -60,7 +64,9 @@
       "i18n": {
         "type": "sap.ui.model.resource.ResourceModel",
         "settings": {
-          "bundleName": "galactic.spacefarers.i18n.i18n"
+          "bundleName": "galactic.spacefarers.i18n.i18n",
+          "supportedLocales": [""],
+          "fallbackLocale": ""
         }
       },
       "": {
@@ -74,7 +80,11 @@
       },
       "@i18n": {
         "type": "sap.ui.model.resource.ResourceModel",
-        "uri": "i18n/i18n.properties"
+        "uri": "i18n/i18n.properties",
+        "settings": {
+          "supportedLocales": [""],
+          "fallbackLocale": ""
+        }
       }
     },
     "resources": {
@@ -102,6 +112,7 @@
           "options": {
             "settings": {
               "contextPath": "/Spacefarers",
+              "initialLoad": "Enabled",
               "variantManagement": "Page",
               "navigation": {
                 "Spacefarers": {

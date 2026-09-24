@@ -276,7 +276,11 @@ describe('prepare spacefaring candidate (before CREATE/UPDATE)', () => {
     const res = await test.patch(activeOf(ORION), { email: 'not-an-email' }, as('alice'));
     expect(res.status).toBe(400);
     expect(errorsOf(res.data)).toEqual([
-      expect.objectContaining({ message: 'Email must be a single valid address', target: 'email' }),
+      expect.objectContaining({
+        code: 'SPACEFARER_EMAIL_INVALID',
+        message: 'Email must be a single valid address',
+        target: 'email',
+      }),
     ]);
     expect(await inDb(ORION)).toMatchObject({ email: 'orion.blackhole@example.com' });
   });

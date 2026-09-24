@@ -19,19 +19,23 @@ type SmtpOptions = { host: string; port: number };
 type Transport = { sendMail(mail: Mail & { from: string }): Promise<unknown> };
 export type Connect = (options: SmtpOptions) => Promise<Transport>;
 
-export function welcomeMessage(s: WelcomeRecipient): Mail {
-  const origin = s.originPlanet_code ? ` from Planet ${s.originPlanet_code}` : '';
+export type Text = (key: string, args?: object) => string;
+
+const fromMessages: Text = (key, args) => cds.i18n.messages.at(key, args) ?? key;
+
+export function welcomeMessage(s: WelcomeRecipient, text = fromMessages): Mail {
+  const { name, originPlanet_code: planet } = s;
   return {
     to: s.email,
-    subject: `Welcome aboard, ${s.name}!`,
+    subject: text('WELCOME_SUBJECT', { name }),
     text: [
-      `Congratulations, ${s.name}!`,
+      text('WELCOME_GREETING', { name }),
       '',
-      `Your launch${origin} was a success, and your adventurous journey among the stars starts now.`,
-      `You set off with ${s.stardustCollected ?? 0} stardust. May every wormhole lead you somewhere wonderful.`,
+      planet ? text('WELCOME_LAUNCH_FROM', { planet }) : text('WELCOME_LAUNCH'),
+      text('WELCOME_STARDUST', { stardust: s.stardustCollected ?? 0 }),
       '',
-      'Clear skies,',
-      'Galactic Spacefarer Command',
+      text('WELCOME_SIGN_OFF'),
+      text('WELCOME_SENDER'),
     ].join('\n'),
   };
 }

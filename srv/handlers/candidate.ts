@@ -3,6 +3,9 @@ import type { Spacefarer } from '#cds-models/GalacticService';
 import { isSingleEmail, titleCase, validInt } from '../lib/rules';
 
 const LOG = cds.log('galactic');
+const SKILL_MIN = 1;
+const SKILL_MAX = 10;
+const STARDUST_MIN = 0;
 
 export function prepareCandidate(req: cds.Request<Spacefarer>) {
   const s = req.data;
@@ -15,18 +18,20 @@ export function prepareCandidate(req: cds.Request<Spacefarer>) {
   if (typeof s.spacesuitColor === 'string') s.spacesuitColor = titleCase(s.spacesuitColor);
   if (typeof s.email === 'string') s.email = s.email.trim();
   if (s.email && !isSingleEmail(s.email))
-    req.error({ status: 400, message: 'Email must be a single valid address', target: 'email' });
+    req.error({ status: 400, message: 'SPACEFARER_EMAIL_INVALID', target: 'email' });
 
-  if (!validInt(s.wormholeNavSkill, 1, 10))
+  if (!validInt(s.wormholeNavSkill, SKILL_MIN, SKILL_MAX))
     req.error({
       status: 400,
-      message: 'Wormhole navigation skill must be between 1 and 10',
+      message: 'SPACEFARER_WORMHOLE_SKILL_RANGE',
+      args: [SKILL_MIN, SKILL_MAX],
       target: 'wormholeNavSkill',
     });
-  if (!validInt(s.stardustCollected, 0))
+  if (!validInt(s.stardustCollected, STARDUST_MIN))
     req.error({
       status: 400,
-      message: 'Stardust collected must be 0 or more',
+      message: 'SPACEFARER_STARDUST_MIN',
+      args: [STARDUST_MIN],
       target: 'stardustCollected',
     });
 

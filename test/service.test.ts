@@ -105,7 +105,7 @@ describe('GalacticService read isolation', () => {
   });
 
   describe('code lists', () => {
-    it.each(['Planets', 'Departments', 'Positions', 'Ranks'])(
+    it.each(['Planets', 'Departments', 'Positions', 'Ranks', 'StardustStatuses'])(
       '%s is readable by any authenticated user',
       async (entity) => {
         const res = await test.get(`/galactic/${entity}`, as('alice'));
@@ -114,9 +114,21 @@ describe('GalacticService read isolation', () => {
       },
     );
 
-    it('Planets is read-only', async () => {
-      const res = await test.post('/galactic/Planets', { code: 'Q', name: 'Q' }, as('admin'));
+    it.each(['Planets', 'StardustStatuses'])('%s is read-only', async (entity) => {
+      const res = await test.post(`/galactic/${entity}`, { code: 'Q', name: 'Q' }, as('admin'));
       expect(res.status).toBeGreaterThanOrEqual(400);
+    });
+
+    it('StardustStatuses lists exactly Low, Growing and Stellar by level', async () => {
+      const { data } = await test.get(
+        '/galactic/StardustStatuses?$select=code,name&$orderby=level',
+        as('bob'),
+      );
+      expect(data.value).toEqual([
+        { code: 'Low', name: 'Low' },
+        { code: 'Growing', name: 'Growing' },
+        { code: 'Stellar', name: 'Stellar' },
+      ]);
     });
   });
 
@@ -156,6 +168,14 @@ describe('GalacticService read isolation', () => {
     it('combines the stardust $filter with planet isolation', async () => {
       const { data } = await test.get(
         "/galactic/Spacefarers?$filter=stardustStatus eq 'Stellar'",
+        as('alice'),
+      );
+      expect(data.value.map((s: Spacefarer) => s.name)).toEqual(['Lyra Nebula']);
+    });
+
+    it('filters on the calculated stardust status with the draft filter the list report adds', async () => {
+      const { data } = await test.get(
+        "/galactic/Spacefarers?$filter=stardustStatus eq 'Stellar' and (IsActiveEntity eq false or SiblingEntity/IsActiveEntity eq null)",
         as('alice'),
       );
       expect(data.value.map((s: Spacefarer) => s.name)).toEqual(['Lyra Nebula']);

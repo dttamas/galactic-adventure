@@ -63,6 +63,10 @@ describe('GalacticService write isolation and drafts', () => {
         as('alice'),
       );
       expect(res.status).toBe(403);
+      expect(res.data.error).toMatchObject({
+        code: 'SPACEFARER_PLANET_FORBIDDEN',
+        message: 'Spacefarers must stay on Planet X',
+      });
       expect(await SELECT.from('db.Spacefarer').where({ name: 'Smuggled Y' })).toHaveLength(0);
     });
 

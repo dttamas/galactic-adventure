@@ -12,12 +12,12 @@ export function enforceOwnPlanet(req: cds.Request<Spacefarer>) {
   if (req.user.is('admin')) return;
   // XSUAA sends attributes as arrays
   const own: string[] = [req.user.attr.planet ?? []].flat();
-  if (!own.length) return req.reject(403, 'No planet assigned to user');
+  if (!own.length) return req.reject(403, 'USER_WITHOUT_PLANET');
   const planet = planetIn(req.data);
   if (planet === undefined) {
     if (req.event !== 'UPDATE') req.data.originPlanet_code = own[0];
     return;
   }
   if (planet === null || !own.includes(planet))
-    req.reject(403, `Spacefarers must stay on Planet ${own}`);
+    req.reject({ status: 403, message: 'SPACEFARER_PLANET_FORBIDDEN', args: [own.join(', ')] });
 }
