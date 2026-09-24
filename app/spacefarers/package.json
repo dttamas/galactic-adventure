@@ -1,0 +1,21 @@
+{
+  "name": "spacefarers",
+  "version": "0.0.1",
+  "description": "Manage galactic spacefarers.",
+  "keywords": [
+    "ui5",
+    "openui5",
+    "sapui5"
+  ],
+  "main": "webapp/index.html",
+  "devDependencies": {
+    "@sap-ux/eslint-plugin-fiori-tools": "^10.0.0",
+    "@sap/ux-ui5-tooling": "1",
+    "@ui5/cli": "^4.0.33",
+    "eslint": "^10",
+    "eslint-config-prettier": "^10.1.8"
+  },
+  "scripts": {
+    "deploy-config": "fiori add deploy-config cf"
+  }
+}

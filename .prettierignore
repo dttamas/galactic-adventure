@@ -1,7 +1,6 @@
 node_modules/
 gen/
-app/*/webapp/
-package-lock.json
+dist/
 .claude/
 docs/
 .superpowers/

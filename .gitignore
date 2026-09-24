@@ -34,3 +34,6 @@ docs/
 .superpowers/
 
 @cds-models/
+
+# UI5 build output
+dist/
