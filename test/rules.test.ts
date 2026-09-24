@@ -1,4 +1,4 @@
-import { titleCase, validInt } from '../srv/lib/rules';
+import { isSingleEmail, titleCase, validInt } from '../srv/lib/rules';
 
 describe('validInt', () => {
   it('passes undefined', () => {
@@ -50,5 +50,29 @@ describe('titleCase', () => {
 
   it('returns empty for an empty string', () => {
     expect(titleCase('')).toBe('');
+  });
+});
+
+describe('isSingleEmail', () => {
+  it.each(['nova.starweaver@example.com', 'a+tag@mail.example.com', 'X_Y-z@sub.example.co'])(
+    'accepts %s',
+    (value) => {
+      expect(isSingleEmail(value)).toBe(true);
+    },
+  );
+
+  it.each([
+    'a@example.com, victim@example.com',
+    'a@example.com;victim@example.com',
+    'a@example.com victim@example.com',
+    'Nova <nova@example.com>',
+    'nova@example',
+    'nova.example.com',
+    '@example.com',
+    'nova@@example.com',
+    'nova@example.com\n',
+    '',
+  ])('rejects %j', (value) => {
+    expect(isSingleEmail(value)).toBe(false);
   });
 });

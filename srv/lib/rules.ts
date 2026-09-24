@@ -9,3 +9,7 @@ export const titleCase = (text: string) =>
     .split(/\s+/)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ');
+
+// pragmatic, not RFC 5322: one address only, so a list can never fan the welcome mail out
+export const isSingleEmail = (value: string) =>
+  /^[^\s@,;<>]+@[^\s@,;<>]+\.[^\s@,;<>]+$/.test(value);
