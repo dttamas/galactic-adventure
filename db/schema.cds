@@ -23,6 +23,15 @@ entity Rank : CodeList {
       level : Integer;
 }
 
+// lists the values of Spacefarer.stardustStatus for value helps; the thresholds stay there
+// cds-typer would take the trailing s for a plural
+@singular: 'StardustStatus'
+@plural  : 'StardustStatuses'
+entity StardustStatus : CodeList {
+  key code  : String(10);
+      level : Integer;
+}
+
 entity Department : cuid, managed {
   name   : String(100);
   sector : String(50);
@@ -34,8 +43,8 @@ entity Position : cuid, managed {
 }
 
 entity Spacefarer : cuid, managed {
-  name                : String(100) not null @mandatory @mandatory.message: 'Name is required';
-  email               : String(200) @mandatory @mandatory.message: 'Email is required';
+  name                : String(100) not null @mandatory @mandatory.message: '{i18n>SPACEFARER_NAME_REQUIRED}';
+  email               : String(200) @mandatory @mandatory.message: '{i18n>SPACEFARER_EMAIL_REQUIRED}';
   originPlanet        : Association to Planet;
   spacesuitColor      : String(30);
   stardustCollected   : Integer default 0;

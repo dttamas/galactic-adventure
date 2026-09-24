@@ -1,51 +1,93 @@
 using GalacticService as service from '../../srv/galactic-service';
+
 annotate service.Spacefarers with @(
+    UI.HeaderInfo : {
+        TypeName       : '{i18n>Spacefarer.typeName}',
+        TypeNamePlural : '{i18n>Spacefarer.typeNamePlural}',
+        Title          : { Value : name },
+        Description    : { Value : rank.name },
+    },
+    UI.SelectionFields : [
+        originPlanet_code,
+        rank_code,
+        department_ID,
+        stardustStatus,
+    ],
+    UI.PresentationVariant : {
+        SortOrder      : [{ Property : name }],
+        Visualizations : ['@UI.LineItem'],
+    },
+    UI.LineItem : [
+        {
+            $Type : 'UI.DataField',
+            Value : name,
+            @HTML5.CssDefaults : { width : 'auto' },
+            @UI.Importance : #High,
+        },
+        {
+            $Type : 'UI.DataField',
+            Value : originPlanet_code,
+            @HTML5.CssDefaults : { width : 'auto' },
+        },
+        {
+            $Type : 'UI.DataField',
+            Value : spacesuitColor,
+            @HTML5.CssDefaults : { width : 'auto' },
+        },
+        {
+            $Type : 'UI.DataField',
+            Value : stardustCollected,
+        },
+        {
+            $Type       : 'UI.DataField',
+            Value       : stardustStatus,
+            Criticality : stardustCriticality,
+            @UI.Importance : #High,
+        },
+        {
+            $Type : 'UI.DataField',
+            Value : wormholeNavSkill,
+            Label : '{i18n>Spacefarer.wormholeNavSkill.column}',
+        },
+        {
+            $Type : 'UI.DataField',
+            Value : rank_code,
+            @HTML5.CssDefaults : { width : 'auto' },
+        },
+    ],
     UI.FieldGroup #GeneratedGroup : {
         $Type : 'UI.FieldGroupType',
         Data : [
             {
                 $Type : 'UI.DataField',
-                Label : 'name',
                 Value : name,
             },
             {
                 $Type : 'UI.DataField',
-                Label : 'email',
                 Value : email,
             },
             {
                 $Type : 'UI.DataField',
-                Label : 'originPlanet_code',
                 Value : originPlanet_code,
             },
             {
                 $Type : 'UI.DataField',
-                Label : 'spacesuitColor',
                 Value : spacesuitColor,
             },
             {
                 $Type : 'UI.DataField',
-                Label : 'stardustCollected',
                 Value : stardustCollected,
             },
             {
                 $Type : 'UI.DataField',
-                Label : 'stardustStatus',
                 Value : stardustStatus,
             },
             {
                 $Type : 'UI.DataField',
-                Label : 'stardustCriticality',
-                Value : stardustCriticality,
-            },
-            {
-                $Type : 'UI.DataField',
-                Label : 'wormholeNavSkill',
                 Value : wormholeNavSkill,
             },
             {
                 $Type : 'UI.DataField',
-                Label : 'rank_code',
                 Value : rank_code,
             },
         ],
@@ -54,80 +96,8 @@ annotate service.Spacefarers with @(
         {
             $Type : 'UI.ReferenceFacet',
             ID : 'GeneratedFacet1',
-            Label : 'General Information',
+            Label : '{i18n>Spacefarer.generalInformation}',
             Target : '@UI.FieldGroup#GeneratedGroup',
         },
     ],
-    UI.LineItem : [
-        {
-            $Type : 'UI.DataField',
-            Label : 'name',
-            Value : name,
-        },
-        {
-            $Type : 'UI.DataField',
-            Label : 'email',
-            Value : email,
-        },
-        {
-            $Type : 'UI.DataField',
-            Label : 'originPlanet_code',
-            Value : originPlanet_code,
-        },
-        {
-            $Type : 'UI.DataField',
-            Label : 'spacesuitColor',
-            Value : spacesuitColor,
-        },
-        {
-            $Type : 'UI.DataField',
-            Label : 'stardustCollected',
-            Value : stardustCollected,
-        },
-    ],
 );
-
-annotate service.Spacefarers with {
-    department @Common.ValueList : {
-        $Type : 'Common.ValueListType',
-        CollectionPath : 'Departments',
-        Parameters : [
-            {
-                $Type : 'Common.ValueListParameterInOut',
-                LocalDataProperty : department_ID,
-                ValueListProperty : 'ID',
-            },
-            {
-                $Type : 'Common.ValueListParameterDisplayOnly',
-                ValueListProperty : 'name',
-            },
-            {
-                $Type : 'Common.ValueListParameterDisplayOnly',
-                ValueListProperty : 'sector',
-            },
-        ],
-    }
-};
-
-annotate service.Spacefarers with {
-    position @Common.ValueList : {
-        $Type : 'Common.ValueListType',
-        CollectionPath : 'Positions',
-        Parameters : [
-            {
-                $Type : 'Common.ValueListParameterInOut',
-                LocalDataProperty : position_ID,
-                ValueListProperty : 'ID',
-            },
-            {
-                $Type : 'Common.ValueListParameterDisplayOnly',
-                ValueListProperty : 'title',
-            },
-            {
-                $Type : 'Common.ValueListParameterDisplayOnly',
-                ValueListProperty : 'level',
-            },
-        ],
-    }
-};
-

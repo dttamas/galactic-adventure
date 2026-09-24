@@ -39,4 +39,7 @@ service GalacticService @(path: '/galactic') {
 
   @readonly
   entity Ranks       as projection on db.Rank;
+
+  @readonly
+  entity StardustStatuses as projection on db.StardustStatus;
 }

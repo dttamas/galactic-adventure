@@ -1,5 +1,13 @@
 import cds from '@sap/cds';
-import type { Department, Mission, Planet, Position, Rank, Spacefarer } from '#cds-models/db';
+import type {
+  Department,
+  Mission,
+  Planet,
+  Position,
+  Rank,
+  Spacefarer,
+  StardustStatus,
+} from '#cds-models/db';
 
 describe('seed data (db/data/*.csv)', () => {
   const test = cds.test(__dirname + '/..');
@@ -9,7 +17,8 @@ describe('seed data (db/data/*.csv)', () => {
     departments: Department[],
     positions: Position[],
     spacefarers: Spacefarer[],
-    missions: Mission[];
+    missions: Mission[],
+    stardustStatuses: StardustStatus[];
   beforeAll(async () => {
     // Vitest 1.x runs beforeAll hooks in parallel
     await test;
@@ -30,6 +39,7 @@ describe('seed data (db/data/*.csv)', () => {
       'stardustStatus',
     );
     missions = await SELECT.from('db.Mission');
+    stardustStatuses = await SELECT.from('db.StardustStatus').orderBy('level');
   });
 
   it('loads the expected row counts', () => {
@@ -39,6 +49,7 @@ describe('seed data (db/data/*.csv)', () => {
     expect(positions).toHaveLength(3);
     expect(spacefarers).toHaveLength(6);
     expect(missions).toHaveLength(7);
+    expect(stardustStatuses).toHaveLength(3);
   });
 
   it('has 3 spacefarers from Planet X and 3 from Planet Y', () => {
@@ -74,6 +85,14 @@ describe('seed data (db/data/*.csv)', () => {
       );
       expect([...statuses].sort(), `Planet ${code}`).toEqual(['Growing', 'Low', 'Stellar']);
     }
+  });
+
+  it('lists the stardust statuses Low, Growing, Stellar by level 1..3', () => {
+    expect(stardustStatuses.map((s) => [s.code, s.name, s.level])).toEqual([
+      ['Low', 'Low', 1],
+      ['Growing', 'Growing', 2],
+      ['Stellar', 'Stellar', 3],
+    ]);
   });
 
   it('uses every mission status at least once', () => {

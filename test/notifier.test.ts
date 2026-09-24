@@ -23,6 +23,39 @@ describe('welcomeMessage', () => {
     expect(msg.text).toContain('Drifter');
     expect(msg.text).not.toContain('undefined');
     expect(msg.text).not.toContain('null');
+    expect(msg.text).not.toContain('Planet');
+  });
+
+  it('reads the English text from the messages bundle', () => {
+    expect(welcomeMessage(cadet).text).toBe(
+      [
+        'Congratulations, Nova Starweaver!',
+        '',
+        'Your launch from Planet X was a success, and your adventurous journey among the stars starts now.',
+        'You set off with 150 stardust. May every wormhole lead you somewhere wonderful.',
+        '',
+        'Clear skies,',
+        'Galactic Spacefarer Command',
+      ].join('\n'),
+    );
+  });
+
+  it('takes every text through the injected lookup', () => {
+    const text = (key: string, args?: object) => (args ? `${key}${JSON.stringify(args)}` : key);
+    const msg = welcomeMessage(cadet, text);
+    expect(msg.subject).toBe('WELCOME_SUBJECT{"name":"Nova Starweaver"}');
+    expect(msg.text.split('\n')).toEqual([
+      'WELCOME_GREETING{"name":"Nova Starweaver"}',
+      '',
+      'WELCOME_LAUNCH_FROM{"planet":"X"}',
+      'WELCOME_STARDUST{"stardust":150}',
+      '',
+      'WELCOME_SIGN_OFF',
+      'WELCOME_SENDER',
+    ]);
+    expect(welcomeMessage({ name: 'Drifter', email: 'd@example.com' }, text).text).toContain(
+      '\nWELCOME_LAUNCH\n',
+    );
   });
 });
 
