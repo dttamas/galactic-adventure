@@ -16,6 +16,7 @@
     "@sap/cds-dk": "^10.1.2",
     "@sap/eslint-plugin-cds": "^4.2.5",
     "@types/node": "^24.13.6",
+    "cds-plugin-ui5": "^0.17.0",
     "eslint": "^10.11.0",
     "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
@@ -39,17 +40,18 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "pnpm run lint && pnpm run format:check && pnpm run typecheck && pnpm test",
-    "prepare": "husky"
+    "prepare": "husky",
+    "watch-spacefarers": "cds watch --open galactic.spacefarers/index.html?sap-ui-xx-viewCache=false --livereload false"
   },
   "lint-staged": {
-    "*.{ts,mjs}": [
+    "*.{ts,js,mjs}": [
       "eslint --fix",
       "prettier --write"
     ],
     "*.cds": [
       "cds lint"
     ],
-    "*.{json,md,yml,yaml}": [
+    "*.{json,md,yml,yaml,html}": [
       "prettier --write"
     ]
   },
@@ -97,5 +99,8 @@
   },
   "imports": {
     "#cds-models/*": "./@cds-models/*/index.js"
-  }
+  },
+  "sapux": [
+    "app/spacefarers"
+  ]
 }

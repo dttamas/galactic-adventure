@@ -19,7 +19,6 @@ export default [
       'node_modules/',
       'gen/',
       '@cds-models/',
-      'app/*/webapp/',
       '.claude/',
       'docs/',
       '.superpowers/',
