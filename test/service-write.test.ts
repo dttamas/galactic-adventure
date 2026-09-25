@@ -158,6 +158,68 @@ describe('GalacticService write isolation and drafts', () => {
     });
   });
 
+  describe('read-only avatar URL', () => {
+    const TRACKER = 'https://tracker.example.com/pixel.svg';
+    const avatarInDb = async (ID: string) =>
+      (await SELECT.one.from('db.Spacefarer', ID).columns('avatarUrl'))?.avatarUrl;
+
+    it.each([
+      ['alice', NOVA, 'images/spacefarers/nova-starweaver.svg'],
+      ['admin', VEGA, 'images/spacefarers/vega-cometrider.svg'],
+    ])('ignores %s patching the avatar URL in an edit draft', async (user, ID, avatar) => {
+      expect((await edit(ID, user)).status).toBe(201);
+      const patch = await test.patch(draftOf(ID), { avatarUrl: TRACKER }, as(user));
+      expect(patch.status).toBe(200);
+      expect(patch.data.avatarUrl).toBe(avatar);
+      expect((await activate(ID, user)).status).toBe(200);
+      expect(await avatarInDb(ID)).toBe(avatar);
+    });
+
+    it('ignores admin patching the avatar URL of the active entity directly', async () => {
+      const patch = await test.patch(activeOf(VEGA), { avatarUrl: TRACKER }, as('admin'));
+      expect(patch.status).toBe(200);
+      expect(await avatarInDb(VEGA)).toBe('images/spacefarers/vega-cometrider.svg');
+    });
+
+    it.each(['alice', 'admin'])('ignores %s posting an avatar URL', async (user) => {
+      const res = await test.post(
+        '/galactic/Spacefarers',
+        { name: `Tracked by ${user}`, email: `tracked.${user}@example.com`, avatarUrl: TRACKER },
+        as(user),
+      );
+      expect(res.status).toBe(201);
+      expect(res.data.avatarUrl).toBeNull();
+      expect((await activate(res.data.ID, user)).status).toBe(201);
+      expect(await avatarInDb(res.data.ID)).toBeNull();
+    });
+  });
+
+  describe('read-only planet image URL', () => {
+    const TRACKER = 'https://tracker.example.com/pixel.svg';
+    const planetImageInDb = async () =>
+      (await SELECT.one.from('db.Planet').where({ code: 'X' }).columns('imageUrl'))?.imageUrl;
+
+    it('rejects admin patching a planet', async () => {
+      const res = await test.patch("/galactic/Planets('X')", { imageUrl: TRACKER }, as('admin'));
+      expect(res.status).toBe(405);
+      expect(await planetImageInDb()).toBe('images/planets/planet-x.svg');
+    });
+
+    it('rejects a planet image sent along with a new spacefarer', async () => {
+      const res = await test.post(
+        '/galactic/Spacefarers',
+        {
+          name: 'Deep Writer',
+          email: 'deep.writer@example.com',
+          originPlanet: { code: 'X', imageUrl: TRACKER },
+        },
+        as('alice'),
+      );
+      expect(res.status).toBe(400);
+      expect(await planetImageInDb()).toBe('images/planets/planet-x.svg');
+    });
+  });
+
   describe('stardust status on the draft path', () => {
     it('recalculates status in the draft after a PATCH and supports $filter/$orderby', async () => {
       expect((await edit(NOVA, 'alice')).status).toBe(201);
@@ -184,6 +246,52 @@ describe('GalacticService write isolation and drafts', () => {
       const act = await activate(NOVA, 'alice');
       expect(act.status).toBe(200);
       expect(act.data).toMatchObject({ stardustStatus: 'Stellar', stardustCriticality: 3 });
+    });
+  });
+
+  describe('missions in the spacefarer draft (Object Page table)', () => {
+    const LYRA = '10000000-0000-0000-0000-000000000003';
+    const VOID_RECON = '30000000-0000-0000-0000-000000000003';
+    const missionsInDb = async () =>
+      (await SELECT.from('db.Mission').where({ spacefarer_ID: LYRA }).columns('title')).map(
+        (m: { title: string }) => m.title,
+      );
+
+    it('adds a mission through the draft and saves it with the spacefarer', async () => {
+      expect((await edit(LYRA, 'alice')).status).toBe(201);
+      const added = await test.post(
+        `${draftOf(LYRA)}/missions`,
+        { title: 'Pulsar Patrol', startDate: '2026-10-01' },
+        as('alice'),
+      );
+      expect(added.status).toBe(201);
+      expect(added.data).toMatchObject({ status: 'planned', statusCriticality: 0 });
+      expect(await missionsInDb()).not.toContain('Pulsar Patrol');
+
+      expect((await activate(LYRA, 'alice')).status).toBe(200);
+      expect(await missionsInDb()).toContain('Pulsar Patrol');
+    });
+
+    it('deletes a mission through the draft on save', async () => {
+      expect((await edit(LYRA, 'alice')).status).toBe(201);
+      const missionDraft = `/galactic/Missions(ID=${VOID_RECON},IsActiveEntity=false)`;
+      expect((await test.delete(missionDraft, as('alice'))).status).toBe(204);
+      expect(await missionsInDb()).toContain('Void Reconnaissance');
+
+      expect((await activate(LYRA, 'alice')).status).toBe(200);
+      expect(await missionsInDb()).not.toContain('Void Reconnaissance');
+    });
+
+    it('keeps the active missions and values when the draft is discarded', async () => {
+      const before = await missionsInDb();
+      expect((await edit(LYRA, 'alice')).status).toBe(201);
+      await test.patch(draftOf(LYRA), { stardustCollected: 1 }, as('alice'));
+      await test.post(`${draftOf(LYRA)}/missions`, { title: 'Never Flown' }, as('alice'));
+
+      expect((await discard(LYRA, 'alice')).status).toBe(204);
+      expect(await missionsInDb()).toEqual(before);
+      const lyra = await SELECT.one.from('db.Spacefarer', LYRA).columns('stardustCollected');
+      expect(lyra?.stardustCollected).toBe(3500);
     });
   });
 });

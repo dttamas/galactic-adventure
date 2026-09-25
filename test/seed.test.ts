@@ -1,3 +1,5 @@
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import cds from '@sap/cds';
 import type {
   Department,
@@ -7,10 +9,12 @@ import type {
   Rank,
   Spacefarer,
   StardustStatus,
+  MissionStatusCode,
 } from '#cds-models/db';
 
 describe('seed data (db/data/*.csv)', () => {
   const test = cds.test(__dirname + '/..');
+  const webapp = join(__dirname, '../app/spacefarers/webapp');
 
   let planets: Planet[],
     ranks: Rank[],
@@ -18,11 +22,12 @@ describe('seed data (db/data/*.csv)', () => {
     positions: Position[],
     spacefarers: Spacefarer[],
     missions: Mission[],
-    stardustStatuses: StardustStatus[];
+    stardustStatuses: StardustStatus[],
+    missionStatuses: MissionStatusCode[];
   beforeAll(async () => {
     // Vitest 1.x runs beforeAll hooks in parallel
     await test;
-    planets = await SELECT.from('db.Planet');
+    planets = await SELECT.from('db.Planet').orderBy('code');
     ranks = await SELECT.from('db.Rank');
     departments = await SELECT.from('db.Department');
     positions = await SELECT.from('db.Position');
@@ -37,9 +42,11 @@ describe('seed data (db/data/*.csv)', () => {
       'position_ID',
       'stardustCollected',
       'stardustStatus',
+      'avatarUrl',
     );
     missions = await SELECT.from('db.Mission');
     stardustStatuses = await SELECT.from('db.StardustStatus').orderBy('level');
+    missionStatuses = await SELECT.from('db.MissionStatusCode');
   });
 
   it('loads the expected row counts', () => {
@@ -50,6 +57,7 @@ describe('seed data (db/data/*.csv)', () => {
     expect(spacefarers).toHaveLength(6);
     expect(missions).toHaveLength(7);
     expect(stardustStatuses).toHaveLength(3);
+    expect(missionStatuses).toHaveLength(4);
   });
 
   it('has 3 spacefarers from Planet X and 3 from Planet Y', () => {
@@ -100,6 +108,16 @@ describe('seed data (db/data/*.csv)', () => {
     expect([...statuses].sort()).toEqual(['active', 'completed', 'failed', 'planned']);
   });
 
+  it('names the mission statuses planned, active, completed, failed by level 1..4', () => {
+    const byLevel = [...missionStatuses].sort((a, b) => (a.level ?? 0) - (b.level ?? 0));
+    expect(byLevel.map((s) => [s.code, s.name, s.level])).toEqual([
+      ['planned', 'Planned', 1],
+      ['active', 'Active', 2],
+      ['completed', 'Completed', 3],
+      ['failed', 'Failed', 4],
+    ]);
+  });
+
   it('leaves Orion Blackhole without missions', () => {
     const orion = spacefarers.find((s) => s.name === 'Orion Blackhole');
     expect(orion).toBeDefined();
@@ -121,6 +139,36 @@ describe('seed data (db/data/*.csv)', () => {
   it('uses reserved @example.com email addresses', () => {
     for (const s of spacefarers) {
       expect(s.email, s.name).toMatch(/@example\.com$/);
+    }
+  });
+
+  it('points every spacefarer at a distinct avatar file in the Fiori app', () => {
+    const urls = spacefarers.map((s) => s.avatarUrl ?? '');
+    expect(new Set(urls).size).toBe(6);
+    for (const url of urls) {
+      expect(url).toMatch(/^images\/spacefarers\/[a-z-]+\.svg$/);
+      expect(existsSync(join(webapp, url)), url).toBe(true);
+    }
+  });
+
+  it('points every planet at its image file in the Fiori app', () => {
+    expect(planets.map((p) => [p.code, p.imageUrl])).toEqual([
+      ['X', 'images/planets/planet-x.svg'],
+      ['Y', 'images/planets/planet-y.svg'],
+      ['Z', 'images/planets/planet-z.svg'],
+    ]);
+    for (const p of planets) {
+      expect(existsSync(join(webapp, p.imageUrl ?? '')), p.imageUrl ?? undefined).toBe(true);
+    }
+  });
+
+  it('uses only CC0-licensed images', () => {
+    const files = [...spacefarers.map((s) => s.avatarUrl), ...planets.map((p) => p.imageUrl)];
+    expect(files).toHaveLength(9);
+    for (const file of files) {
+      const svg = readFileSync(join(webapp, file ?? ''), 'utf8');
+      expect(svg, file ?? undefined).toMatch(/^<svg /);
+      expect(svg, file ?? undefined).toContain('licensed under “CC0 1.0”');
     }
   });
 

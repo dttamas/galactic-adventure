@@ -1,9 +1,12 @@
 using GalacticService as service from '../srv/galactic-service';
 
-annotate service.Spacefarers with {
+annotate service.Spacefarers with @Common.IsNaturalPerson {
   ID                  @UI.Hidden;
   name                @title: '{i18n>Spacefarer.name}';
   email               @title: '{i18n>Spacefarer.email}';
+  avatarUrl           @title: '{i18n>Spacefarer.avatarUrl}'
+                      @UI.IsImageURL
+                      @UI.HiddenFilter;
   spacesuitColor      @title: '{i18n>Spacefarer.spacesuitColor}';
   stardustCollected   @title: '{i18n>Spacefarer.stardustCollected}';
   stardustCriticality @title: '{i18n>Spacefarer.stardustCriticality}'
@@ -144,5 +147,44 @@ annotate service.Planets with {
            $value              : name,
            @UI.TextArrangement : #TextOnly
          };
-  galaxy @title: '{i18n>Planet.galaxy}';
+  galaxy   @title: '{i18n>Planet.galaxy}';
+  imageUrl @title: '{i18n>Planet.imageUrl}'
+           @UI.IsImageURL;
+}
+
+annotate service.Missions with {
+  ID                @UI.Hidden;
+  title             @title: '{i18n>Mission.title}';
+  startDate         @title: '{i18n>Mission.startDate}';
+  endDate           @title: '{i18n>Mission.endDate}';
+  statusCriticality @title: '{i18n>Mission.statusCriticality}'
+                    @UI.Hidden;
+  spacefarer        @UI.Hidden;
+
+  status            @title: '{i18n>Mission.status}'
+                    @Common.Text: {
+                      $value              : statusInfo.name,
+                      @UI.TextArrangement : #TextOnly
+                    }
+                    @Common.ValueListWithFixedValues
+                    @Common.ValueList: {
+                      CollectionPath              : 'MissionStatuses',
+                      PresentationVariantQualifier: 'ByLevel',
+                      Parameters                  : [{
+                        $Type            : 'Common.ValueListParameterInOut',
+                        LocalDataProperty: status,
+                        ValueListProperty: 'code'
+                      }]
+                    };
+}
+
+annotate service.MissionStatuses with @UI.PresentationVariant #ByLevel: {
+  SortOrder: [{Property: level}]
+} {
+  code  @title: '{i18n>MissionStatus.code}'
+        @Common.Text: {
+          $value              : name,
+          @UI.TextArrangement : #TextOnly
+        };
+  level @title: '{i18n>MissionStatus.level}';
 }
