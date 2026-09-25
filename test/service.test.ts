@@ -105,19 +105,26 @@ describe('GalacticService read isolation', () => {
   });
 
   describe('code lists', () => {
-    it.each(['Planets', 'Departments', 'Positions', 'Ranks', 'StardustStatuses'])(
-      '%s is readable by any authenticated user',
+    it.each([
+      'Planets',
+      'Departments',
+      'Positions',
+      'Ranks',
+      'StardustStatuses',
+      'MissionStatuses',
+    ])('%s is readable by any authenticated user', async (entity) => {
+      const res = await test.get(`/galactic/${entity}`, as('alice'));
+      expect(res.status).toBe(200);
+      expect(res.data.value.length).toBeGreaterThan(0);
+    });
+
+    it.each(['Planets', 'StardustStatuses', 'MissionStatuses'])(
+      '%s is read-only',
       async (entity) => {
-        const res = await test.get(`/galactic/${entity}`, as('alice'));
-        expect(res.status).toBe(200);
-        expect(res.data.value.length).toBeGreaterThan(0);
+        const res = await test.post(`/galactic/${entity}`, { code: 'Q', name: 'Q' }, as('admin'));
+        expect(res.status).toBeGreaterThanOrEqual(400);
       },
     );
-
-    it.each(['Planets', 'StardustStatuses'])('%s is read-only', async (entity) => {
-      const res = await test.post(`/galactic/${entity}`, { code: 'Q', name: 'Q' }, as('admin'));
-      expect(res.status).toBeGreaterThanOrEqual(400);
-    });
 
     it('StardustStatuses lists exactly Low, Growing and Stellar by level', async () => {
       const { data } = await test.get(
@@ -129,6 +136,42 @@ describe('GalacticService read isolation', () => {
         { code: 'Growing', name: 'Growing' },
         { code: 'Stellar', name: 'Stellar' },
       ]);
+    });
+
+    it('MissionStatuses names each mission status', async () => {
+      const { data } = await test.get('/galactic/MissionStatuses?$select=code,name', as('bob'));
+      expect(data.value).toEqual(
+        expect.arrayContaining([
+          { code: 'planned', name: 'Planned' },
+          { code: 'active', name: 'Active' },
+          { code: 'completed', name: 'Completed' },
+          { code: 'failed', name: 'Failed' },
+        ]),
+      );
+      expect(data.value).toHaveLength(4);
+    });
+  });
+
+  describe('mission status through the service', () => {
+    it('returns the status name and criticality per mission', async () => {
+      const { data } = await test.get(
+        '/galactic/Missions?$select=status,statusCriticality&$expand=statusInfo($select=name)',
+        as('admin'),
+      );
+      const byStatus = Object.fromEntries(
+        data.value.map(
+          (m: { status: string; statusCriticality: number; statusInfo: { name: string } }) => [
+            m.status,
+            [m.statusInfo.name, m.statusCriticality],
+          ],
+        ),
+      );
+      expect(byStatus).toEqual({
+        planned: ['Planned', 0],
+        active: ['Active', 5],
+        completed: ['Completed', 3],
+        failed: ['Failed', 1],
+      });
     });
   });
 

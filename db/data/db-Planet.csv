@@ -1,4 +1,4 @@
-code;name;descr;galaxy
-X;Planet X;Home of the pioneers;Milky Way
-Y;Planet Y;Home of the strategists;Andromeda
-Z;Planet Z;Neutral trading hub;Triangulum
+code;name;descr;galaxy;imageUrl
+X;Planet X;Home of the pioneers;Milky Way;images/planets/planet-x.svg
+Y;Planet Y;Home of the strategists;Andromeda;images/planets/planet-y.svg
+Z;Planet Z;Neutral trading hub;Triangulum;images/planets/planet-z.svg

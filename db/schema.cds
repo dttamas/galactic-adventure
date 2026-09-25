@@ -14,8 +14,9 @@ type MissionStatus : String enum {
 }
 
 entity Planet : CodeList {
-  key code   : String(5);
-      galaxy : String(50);
+  key code     : String(5);
+      galaxy   : String(50);
+      imageUrl : String(255);
 }
 
 entity Rank : CodeList {
@@ -32,6 +33,12 @@ entity StardustStatus : CodeList {
       level : Integer;
 }
 
+// readable names for the MissionStatus enum values
+entity MissionStatusCode : CodeList {
+  key code  : MissionStatus;
+      level : Integer;
+}
+
 entity Department : cuid, managed {
   name   : String(100);
   sector : String(50);
@@ -45,6 +52,8 @@ entity Position : cuid, managed {
 entity Spacefarer : cuid, managed {
   name                : String(100) not null @mandatory @mandatory.message: '{i18n>SPACEFARER_NAME_REQUIRED}';
   email               : String(200) @mandatory @mandatory.message: '{i18n>SPACEFARER_EMAIL_REQUIRED}';
+  // relative to the Fiori app page, e.g. images/spacefarers/nova-starweaver.svg
+  avatarUrl           : String(255);
   originPlanet        : Association to Planet;
   spacesuitColor      : String(30);
   stardustCollected   : Integer default 0;
@@ -72,9 +81,21 @@ entity Spacefarer : cuid, managed {
 }
 
 entity Mission : cuid, managed {
-  title      : String(100);
-  startDate  : Date;
-  endDate    : Date;
-  status     : MissionStatus default 'planned';
-  spacefarer : Association to Spacefarer;
+  title             : String(100);
+  startDate         : Date;
+  endDate           : Date;
+  status            : MissionStatus default 'planned';
+  statusInfo        : Association to MissionStatusCode
+                        on statusInfo.code = status;
+  // 5 is UI.CriticalityType Information: an active mission is in progress, not at risk
+  statusCriticality : Integer = case status
+                                  when 'completed'
+                                       then 3
+                                  when 'active'
+                                       then 5
+                                  when 'failed'
+                                       then 1
+                                  else 0
+                                end;
+  spacefarer        : Association to Spacefarer;
 }

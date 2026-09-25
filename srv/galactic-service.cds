@@ -42,4 +42,15 @@ service GalacticService @(path: '/galactic') {
 
   @readonly
   entity StardustStatuses as projection on db.StardustStatus;
+
+  // cds-typer would otherwise name the item type MissionStatuse
+  @readonly
+  @singular: 'MissionStatus'
+  @plural  : 'MissionStatuses'
+  entity MissionStatuses  as projection on db.MissionStatusCode;
+}
+
+// only seeded app images, so nobody can point an avatar at an external tracker
+annotate GalacticService.Spacefarers with {
+  avatarUrl @readonly;
 }
